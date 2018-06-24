@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- 宽度=设备宽度 用户缩放=禁用 初始缩放=1:1 最大缩放=1:1 最小缩放=1:1 -->
+    <title>进阶: Canvas画板</title>
+    <style>
+        body{
+            border:1px solid red;
+            height:100vh;
+            margin: 0;
+        }
+
+        canvas{
+            background: pink;
+        }
+        .actions{
+            position: fixed;
+            top:0;
+            left:0;
+        }
+        .actions #brush{
+            display: none;
+        }
+        .actions.x > #brush{
+            display: inline-block;
+        }
+        .actions.x > #eraser{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas6"></canvas>
+<div id="actions" class="actions">
+    <button id="eraser">橡皮擦</button>
+    <button id="brush" >画笔</button>
+</div>
+
+
+<script>
+
+    let canvas6 = document.getElementById('canvas6');
+    setCanvasSize();
+    window.onresize = function () {
+        setCanvasSize()
+    }
+    //动态设置 画板宽高
+    function setCanvasSize(){
+        let pageWidth = document.documentElement.clientWidth;
+        let pageHeight = document.documentElement.clientHeight;
+
+        canvas6.width = pageWidth;
+        canvas6.height = pageHeight;
+    }
+
+
+    //两点之间连线
+    function drawLine(p1,p2,context,lineWidth){
+        context.lineWidth = lineWidth;//线宽
+        context.strokeStyle = 'black';
+        context.beginPath();
+        context.moveTo(p1.x,p1.y);//起点
+        context.lineTo(p2.x,p2.y);//终点
+        context.stroke();//描边
+        context.closePath();
+    }
+
+    let ctx6 = canvas6.getContext('2d');
+    let flag6 = false;
+    let lastPoint = {'x':undefined,'y':undefined};
+    let usingEraser = false;
+
+    if(document.body.ontouchstart !== undefined){
+        canvas6.ontouchstart = function(){
+            console.log('开始摸我了');
+            console.log(event);
+            if(usingEraser){
+                ctx6.clearRect(event.touches[0].clientX-10,event.touches[0].clientY-10,20,20);
+            }else{
+                flag6 = true;
+                lastPoint.x = event.touches[0].clientX;
+                lastPoint.y = event.touches[0].clientY;
+            }
+        }
+        canvas6.ontouchmove = function(){
+            console.log('边摸边动了');
+            if(usingEraser){
+                ctx6.clearRect(event.touches[0].clientX-10,event.touches[0].clientY-10,20,20);
+            }else{
+                if(flag6){
+                    let newPoint = {'x':event.touches[0].clientX,'y':event.touches[0].clientY};
+                    //drawCircle(event.layerX,event.layerY,3,ctx6)
+                    drawLine(lastPoint,newPoint,ctx6,5);
+                    lastPoint = newPoint;
+                }
+            }
+        }
+        canvas6.ontouchend = function () {
+            console.log('摸完了');
+            flag6 = false;
+        }
+    }else{
+        canvas6.onmousedown = function(event){
+            //console.log('down');
+            if(usingEraser){
+                ctx6.clearRect(event.layerX-10,event.layerY-10,20,20);
+            }else{
+                flag6 = true;
+                lastPoint.x = event.layerX;
+                lastPoint.y = event.layerY;
+            }
+        }
+        canvas6.onmousemove = function(event){
+            //console.log('move');
+            if(usingEraser){
+                ctx6.clearRect(event.layerX-10,event.layerY-10,20,20);
+            }else{
+                if(flag6){
+                    let newPoint = {'x':event.layerX,'y':event.layerY};
+                    //drawCircle(event.layerX,event.layerY,3,ctx6)
+                    drawLine(lastPoint,newPoint,ctx6,5);
+                    lastPoint = newPoint;
+                }
+            }
+
+        }
+        canvas6.onmouseup = function(){
+            flag6 = false;
+        }
+    }
+
+
+
+    eraser.onclick = function(){
+        usingEraser = true;
+        actions.className = 'actions x';
+    }
+    brush.onclick = function(){
+        usingEraser = false;
+        actions.className = 'actions';
+    }
+
+
+</script>
+</body>
+</html>
